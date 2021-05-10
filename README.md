@@ -65,27 +65,19 @@ import (
 
 func main() {
   template := `
-  terraform {
-    required_providers {
-      (providers)[
-        {{name}} = {
-          source = "{{namespace}}/{{name}}"
-          version = "{{version}}"
-        }
-      ]
-    }
-    configurations {
-      (config)[
-        {{name}} = {
-          name = {{name}}
-          value = "{{value}}"
-        }
-      ]
-    }
-    experiments = {{experiments}}
-  } 
-  `
-	variables := map[string]interface{}{
+    terraform {
+      required_providers {
+        (providers)[
+          {{name}} = {
+            source = "{{namespace}}/{{name}}"
+            version = "{{version}}"
+          }
+        ]
+      }
+      experiments = {{experiments}}
+    }`
+    
+    variables := map[string]interface{}{
 		"providers": []map[string]interface{}{
 			{
 				"namespace": "hashicorp",
@@ -99,9 +91,9 @@ func main() {
 			},
 		},
 		"experiments": true,
-  }
+    }
 
-  rendered := rendering.Render(template, variables)
+    rendered := rendering.Render(template, variables)
 
 	f, err := os.Create("terraform.tf")
 	if err != nil {
