@@ -59,12 +59,12 @@ func Render(template string, variables map[string]interface{}) string
 package main
 
 import (
-  "github.com/sebps/template-engine/rendering"
-  "os"
+	"github.com/sebps/template-engine/rendering"
+	"os"
 )
 
 func main() {
-  template := `
+	template := `
     terraform {
       required_providers {
         (providers)[
@@ -76,8 +76,8 @@ func main() {
       }
       experiments = {{experiments}}
     }`
-    
-    variables := map[string]interface{}{
+
+	variables := map[string]interface{}{
 		"providers": []map[string]interface{}{
 			{
 				"namespace": "hashicorp",
@@ -91,9 +91,9 @@ func main() {
 			},
 		},
 		"experiments": true,
-    }
+	}
 
-    rendered := rendering.Render(template, variables)
+	rendered := rendering.Render(template, variables)
 
 	f, err := os.Create("terraform.tf")
 	if err != nil {
@@ -106,6 +106,7 @@ func main() {
 		panic(err)
 	}
 }
+
 ```
 
 ### Http Server usage
