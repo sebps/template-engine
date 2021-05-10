@@ -46,8 +46,8 @@ A variables map is a map with
 Note : Only one level hierarchy is currently supported by the template engine
 
 ### Library usage
-The template engine core rendering package can be imported. github.com/sebps/template-engine/rendering
-All the rendering process stands in its Render function.  
+The template engine core rendering package can be imported.
+All the rendering process takes place in its Render function.  
 
 #### Rendering function signature
 ```go
@@ -65,27 +65,26 @@ import (
 
 func main() {
   template := `
-    terraform {
-      required_providers {
-        (providers)[
-          {{name}} = {
-            source = "{{namespace}}/{{name}}"
-            version = "{{version}}"
-          }
-        ]
-      }
-      configurations {
-        (config)[
-          {{name}} = {
-            name = {{name}}
-            value = "{{value}}"
-          }
-        ]
-      }
-      experiments = {{experiments}}
-    } 
+  terraform {
+    required_providers {
+      (providers)[
+        {{name}} = {
+          source = "{{namespace}}/{{name}}"
+          version = "{{version}}"
+        }
+      ]
+    }
+    configurations {
+      (config)[
+        {{name}} = {
+          name = {{name}}
+          value = "{{value}}"
+        }
+      ]
+    }
+    experiments = {{experiments}}
+  } 
   `
-
 	variables := map[string]interface{}{
 		"providers": []map[string]interface{}{
 			{
