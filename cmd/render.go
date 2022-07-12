@@ -24,9 +24,9 @@ func readFileContent(filePath string) string {
 	return string(fileRawContent)
 }
 
-func renderAndWrite(template string, variables map[string]interface{}, path string) {
+func renderAndWrite(template string, variables map[string]interface{}, leftDelimiter string, rightDelimiter string, path string) {
 	// render result
-	rendered := rendering.Render(template, variables)
+	rendered := rendering.Render(template, variables, leftDelimiter, rightDelimiter)
 
 	// prepare dir
 	if _, err := os.Stat(filepath.Dir(path)); os.IsNotExist(err) {
@@ -65,19 +65,16 @@ func readVariables(filePath string) map[string]interface{} {
 // renderCmd represents the render command
 var renderCmd = &cobra.Command{
 	Use:   "render",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "Render a single file or a full directory",
+	Long:  "Render a single file or a full directory",
 	Run: func(cmd *cobra.Command, args []string) {
 		// render flags
 		mode, _ := cmd.Flags().GetString("mode")
 		in, _ := cmd.Flags().GetString("in")
 		out, _ := cmd.Flags().GetString("out")
 		data, _ := cmd.Flags().GetString("data")
+		leftDelimiter, _ := cmd.Flags().GetString("left-delimiter")
+		rightDelimiter, _ := cmd.Flags().GetString("right-delimiter")
 		variables := readVariables(data)
 
 		switch mode {
@@ -92,13 +89,13 @@ to quickly create a Cobra application.`,
 				}
 				pathOut := strings.Replace(pathIn, in, out, 1)
 				template := readFileContent(pathIn)
-				renderAndWrite(template, variables, pathOut)
+				renderAndWrite(template, variables, leftDelimiter, rightDelimiter, pathOut)
 
 				return nil
 			})
 		case "file", "FILE":
 			template := readFileContent(in)
-			renderAndWrite(template, variables, out)
+			renderAndWrite(template, variables, leftDelimiter, rightDelimiter, out)
 		}
 	},
 }
@@ -111,6 +108,8 @@ func init() {
 	renderCmd.Flags().StringP("out", "o", "", "Output path ( file or dir )")
 	renderCmd.Flags().StringP("mode", "m", "file", "Parsing mode ( 'file' or 'dir' ) ( default is 'file' )")
 	renderCmd.Flags().StringP("data", "d", "", "Data variables path ( json file )")
+	renderCmd.Flags().StringP("left-delimiter", "l", "{{", "Left variable delimiter ( default is {{ )")
+	renderCmd.Flags().StringP("right-delimiter", "r", "}}", "Right variable delimiter ( default is }} )")
 	renderCmd.MarkFlagRequired("in")
 	renderCmd.MarkFlagRequired("out")
 	renderCmd.MarkFlagRequired("data")
