@@ -1,9 +1,10 @@
+/*
+Copyright © 2022 Seb P sebpsdev@gmail.com
+*/
 package main
 
-import (
-	"github.com/sebps/template-engine/server"
-)
+import "github.com/sebps/template-engine/cmd"
 
 func main() {
-	server.Serve(8000)
+	cmd.Execute()
 }
