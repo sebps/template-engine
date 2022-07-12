@@ -2,13 +2,14 @@ package server
 
 import (
 	"encoding/json"
-	"github.com/sebps/template-engine/rendering"
 	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 	"strconv"
+
+	"github.com/sebps/template-engine/rendering"
 )
 
 const TEMPLATE_DIR = "../templates"
@@ -25,7 +26,7 @@ func (handler *HttpHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	handler.Handler(w, r)
 }
 
-func Serve(port int) {
+func Serve(address string, port int, leftDelimiter string, rightDelimiter string) {
 	handlers := []*HttpHandler{
 		{
 			Pattern: "/",
@@ -35,7 +36,7 @@ func Serve(port int) {
 		{
 			Pattern: "/Render",
 			Method:  "POST",
-			Handler: renderHandler,
+			Handler: getRenderHandler(leftDelimiter, rightDelimiter),
 		},
 		{
 			Pattern: "/Register",
@@ -49,8 +50,8 @@ func Serve(port int) {
 		mux.Handle(h.Pattern, h)
 	}
 
-	log.Println("Template engine server listening at ", port)
-	http.ListenAndServe(":"+strconv.Itoa(port), mux)
+	log.Println("Template engine server listening at ", address, ":", port)
+	http.ListenAndServe(address+":"+strconv.Itoa(port), mux)
 }
 
 func rootHandler(w http.ResponseWriter, r *http.Request) {
@@ -65,26 +66,28 @@ func registerHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func renderHandler(w http.ResponseWriter, r *http.Request) {
-	type Params struct {
-		Variables map[string]interface{}
-		Template  string
-	}
-	params := &Params{}
+func getRenderHandler(leftDelimiter string, rightDelimiter string) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		type Params struct {
+			Variables map[string]interface{}
+			Template  string
+		}
+		params := &Params{}
 
-	err := json.NewDecoder(r.Body).Decode(params)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
+		err := json.NewDecoder(r.Body).Decode(params)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
 
-	content, err := ioutil.ReadFile(TEMPLATE_DIR + "/" + params.Template)
-	if err != nil {
-		panic(err)
-	}
+		content, err := ioutil.ReadFile(TEMPLATE_DIR + "/" + params.Template)
+		if err != nil {
+			panic(err)
+		}
 
-	rendered := rendering.Render(string(content), params.Variables)
-	w.Write([]byte(rendered))
+		rendered := rendering.Render(string(content), params.Variables, leftDelimiter, rightDelimiter)
+		w.Write([]byte(rendered))
+	}
 }
 
 func uploadFile(w http.ResponseWriter, r *http.Request) {

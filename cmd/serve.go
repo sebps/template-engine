@@ -20,17 +20,20 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		// address, _ := cmd.Flags().GetString("address")
+		address, _ := cmd.Flags().GetString("address")
 		port, _ := cmd.Flags().GetInt("port")
-		server.Serve(port)
+		leftDelimiter, _ := cmd.Flags().GetString("leftDelimiter")
+		rightDelimiter, _ := cmd.Flags().GetString("rightDelimiter")
+		server.Serve(address, port, leftDelimiter, rightDelimiter)
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(serveCmd)
 
-	// serveCmd.Flags().StringP("address", "a", "", "Template engine server address")
+	serveCmd.Flags().StringP("address", "a", "0.0.0.0", "Template engine server address ( default is 0.0.0.0 )")
 	serveCmd.Flags().IntP("port", "p", -1, "Template engine server port")
-	serveCmd.MarkFlagRequired("address")
 	serveCmd.MarkFlagRequired("port")
+	serveCmd.Flags().StringP("leftDelimiter", "l", "{{", "Left variable delimiter ( default is {{ )")
+	serveCmd.Flags().StringP("rightDelimiter", "r", "}}", "Right variable delimiter ( default is }} )")
 }

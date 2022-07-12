@@ -97,7 +97,7 @@ func Reindent(content string, offset int) string {
 }
 
 // Flattify the base structure transforming the loops block into flat content
-func FlattifyStructure(structure string, loops []*Loop) string {
+func FlattifyStructure(structure string, loops []*Loop, leftDelimiter string, rightDelimiter string) string {
 	var rendered []byte
 	var cursor int
 
@@ -118,7 +118,7 @@ func FlattifyStructure(structure string, loops []*Loop) string {
 				mapping[k] = loop.Variable + "_" + k + "_" + fmt.Sprint(idx)
 			}
 
-			loopBlock := RenameVariables(loop.Block, mapping)
+			loopBlock := RenameVariables(loop.Block, mapping, leftDelimiter, rightDelimiter)
 			indentedLoopBlock := Reindent(loopBlock, loop.Offset)
 			loopBlocks = append(loopBlocks, indentedLoopBlock)
 		}
@@ -160,37 +160,44 @@ func FlattifyVariables(variables map[string]interface{}, loops []*Loop) map[stri
 }
 
 // Rename the variable of a structure with a mapping of names
-func RenameVariables(structure string, mapping map[string]string) string {
+func RenameVariables(structure string, mapping map[string]string, leftDelimiter string, rightDelimiter string) string {
 	var rendered = structure
 
 	for k, v := range mapping {
-		rendered = strings.ReplaceAll(rendered, "{{"+k+"}}", "{{"+v+"}}")
+		rendered = strings.ReplaceAll(rendered, leftDelimiter+k+rightDelimiter, leftDelimiter+v+rightDelimiter)
 	}
 
 	return rendered
 }
 
 // Interpolate a structure with a map of variables
-func Interpolate(structure string, variables map[string]interface{}) string {
+func Interpolate(structure string, variables map[string]interface{}, leftDelimiter string, rightDelimiter string) string {
 	var rendered = structure
 
 	for k, v := range variables {
-		rendered = strings.ReplaceAll(rendered, "{{"+k+"}}", fmt.Sprintf("%v", v))
+		rendered = strings.ReplaceAll(rendered, leftDelimiter+k+rightDelimiter, fmt.Sprintf("%v", v))
 	}
 
 	return rendered
 }
 
-func Render(template string, variables map[string]interface{}) string {
+func Render(template string, variables map[string]interface{}, leftDelimiter string, rightDelimiter string) string {
+	if len(leftDelimiter) == 0 {
+		leftDelimiter = "{{"
+	}
+	if len(rightDelimiter) == 0 {
+		rightDelimiter = "}}"
+	}
+
 	var loops []*Loop
 	var flatStructure string
 	var flatVariables map[string]interface{}
 	var rendered string
 
 	loops = ParseLoops(template, variables)
-	flatStructure = FlattifyStructure(template, loops)
+	flatStructure = FlattifyStructure(template, loops, leftDelimiter, rightDelimiter)
 	flatVariables = FlattifyVariables(variables, loops)
-	rendered = Interpolate(flatStructure, flatVariables)
+	rendered = Interpolate(flatStructure, flatVariables, leftDelimiter, rightDelimiter)
 
 	return rendered
 }
