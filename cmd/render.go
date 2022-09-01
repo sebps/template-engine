@@ -10,7 +10,6 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/sebps/template-engine/rendering"
 	"github.com/spf13/cobra"
@@ -87,7 +86,9 @@ var renderCmd = &cobra.Command{
 				if info.IsDir() {
 					return nil
 				}
-				pathOut := strings.Replace(pathIn, in, out, 1)
+				relativePathIn, _ := filepath.Rel(in, pathIn)
+				pathOut := filepath.Join(out, relativePathIn)
+
 				template := readFileContent(pathIn)
 				renderAndWrite(template, variables, leftDelimiter, rightDelimiter, pathOut)
 
