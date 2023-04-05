@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+	"unicode"
 )
 
 type Loop struct {
@@ -21,7 +22,7 @@ func ParseLoops(structure string, args map[string]interface{}) []*Loop {
 	// 1- Handle the case in which loop.Values is a slice of primitive such as string, int, float, bool
 	// 2- Handle infinite recursion
 	var loops []*Loop
-	loopsRegexp := regexp.MustCompile("(?sm)(?P<loop>(?P<offset>^\\s*)\\((?P<variable>[a-zA-Z0-9]+)\\)\\[\n*(?P<block>[^\\]]*)\n\\s*\\])")
+	loopsRegexp := regexp.MustCompile("(?sm)(?P<loop>(?P<offset>^\\s*)\\((?P<variable>[a-zA-Z0-9\\-\\_]+)\\)\\[\n*(?P<block>[^\\]]*)\n\\s*\\])")
 	loopsGroupNames := loopsRegexp.SubexpNames()
 	submatchIndexes := loopsRegexp.FindAllStringSubmatchIndex(structure, -1)
 
@@ -58,24 +59,29 @@ func ParseLoops(structure string, args map[string]interface{}) []*Loop {
 	return loops
 }
 
-// Reindent a string to the required offset
-func Reindent(content string, offset int) string {
-	var result string
-	var baseOffset int
-	var deltaOffset int
+func CountLeadingWhitespaces(s string) int {
+	spaces := 0
+	runes := []rune(s)
 
-	offsetRegexp := regexp.MustCompile("(?sm)(?P<offset>^\\s).*$")
-	matches := offsetRegexp.FindStringSubmatch(content)
-	baseOffsetGroupNames := offsetRegexp.SubexpNames()
-
-	for idx, match := range matches {
-		name := baseOffsetGroupNames[idx]
-		if name == "offset" {
-			baseOffset = len(match)
+	for _, r := range runes {
+		if unicode.IsSpace(r) {
+			spaces++
+		} else {
+			break
 		}
 	}
 
-	deltaOffset = baseOffset - offset
+	return spaces
+}
+
+// Reindent a string to the required offset
+func Reindent(content string, baseOffset int) string {
+	var result string
+	var contentOffset int
+	var deltaOffset int
+
+	contentOffset = CountLeadingWhitespaces(content)
+	deltaOffset = contentOffset - baseOffset
 
 	for cursor := 0; cursor < len(content); cursor++ {
 		if cursor == 0 && "\n" != string(content[cursor]) {
