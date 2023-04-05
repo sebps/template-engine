@@ -59,32 +59,33 @@ func Render(template string, variables map[string]interface{}, leftDelimiter str
 package main
 
 import (
-	"github.com/sebps/template-engine/rendering"
 	"os"
+
+	"github.com/sebps/template-engine/rendering"
 )
 
 func main() {
 	template := `
     terraform {
-      required_providers {
-        (providers)[
-          {{name}} = {
-            source = "{{namespace}}/{{name}}"
-            version = "{{version}}"
-          }
-        ]
-      }
-      experiments = {{experiments}}
+		required_providers {
+			(providers)[
+				{{name}} = {
+					source = "{{namespace}}/{{name}}"
+					version = "{{version}}"
+				}
+			]
+		}
+		experiments = {{experiments}}
     }`
 
 	variables := map[string]interface{}{
-		"providers": []map[string]interface{}{
-			{
+		"providers": []interface{}{
+			map[string]interface{}{
 				"namespace": "hashicorp",
 				"name":      "aws",
 				"version":   "2.0.1",
 			},
-			{
+			map[string]interface{}{
 				"namespace": "hashicorp",
 				"name":      "azure",
 				"version":   "3.4.2",
