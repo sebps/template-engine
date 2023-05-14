@@ -167,7 +167,7 @@ curl --location --request POST 'http://localhost:8000/Render' \
 Install the library as a global module executing the following command
 
 ```
-go install github.com/sebps/template-engine@v1.0.4
+go install github.com/sebps/template-engine@v1.0.5
 ```
 
 #### Render a file or directory 
