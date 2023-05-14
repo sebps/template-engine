@@ -9,7 +9,7 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/sebps/template-engine/rendering"
+	"github.com/sebps/template-engine/internal/rendering"
 )
 
 const TEMPLATE_DIR = "../templates"

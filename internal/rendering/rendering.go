@@ -56,6 +56,7 @@ func ParseLoops(structure string, args map[string]interface{}) []*Loop {
 
 		loops = append(loops, loop)
 	}
+
 	return loops
 }
 
@@ -201,6 +202,7 @@ func Render(template string, variables map[string]interface{}, leftDelimiter str
 	var rendered string
 
 	loops = ParseLoops(template, variables)
+
 	flatStructure = FlattifyStructure(template, loops, leftDelimiter, rightDelimiter)
 	flatVariables = FlattifyVariables(variables, loops)
 	rendered = Interpolate(flatStructure, flatVariables, leftDelimiter, rightDelimiter)
