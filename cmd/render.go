@@ -80,7 +80,7 @@ func init() {
 	renderCmd.Flags().StringP("left-delimiter", "l", "{{", "Left variable delimiter ( default is {{ )")
 	renderCmd.Flags().StringP("right-delimiter", "r", "}}", "Right variable delimiter ( default is }} )")
 	renderCmd.Flags().StringP("key-column", "k", "id", "Key column ( for .csv variable file ) ( default is 'id' }} )")
-	renderCmd.Flags().StringP("wrapping-loop-variable", "w", "records", "Name of the root loop variables in template ( for .csv variable file ) ( default is 'loop' }} )")
+	renderCmd.Flags().StringP("wrapping-loop-variable", "w", "root", "Name of the root loop variables in template ( for .csv variable file ) ( default is 'loop' }} )")
 	renderCmd.MarkFlagRequired("in")
 	renderCmd.MarkFlagRequired("out")
 	renderCmd.MarkFlagRequired("data")
