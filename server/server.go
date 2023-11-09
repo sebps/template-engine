@@ -26,7 +26,17 @@ func (handler *HttpHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	handler.Handler(w, r)
 }
 
-func Serve(address string, port int, leftDelimiter string, rightDelimiter string) {
+func Serve(
+	address string,
+	port int,
+	leftDelimiter string,
+	rightDelimiter string,
+	leftLoopVariableDelimiter string,
+	rightLoopVariableDelimiter string,
+	leftLoopBlockDelimiter string,
+	rightLoopBlockDelimiter string,
+) {
+
 	handlers := []*HttpHandler{
 		{
 			Pattern: "/",
@@ -36,7 +46,14 @@ func Serve(address string, port int, leftDelimiter string, rightDelimiter string
 		{
 			Pattern: "/Render",
 			Method:  "POST",
-			Handler: getRenderHandler(leftDelimiter, rightDelimiter),
+			Handler: getRenderHandler(
+				leftDelimiter,
+				rightDelimiter,
+				leftLoopVariableDelimiter,
+				rightLoopVariableDelimiter,
+				leftLoopBlockDelimiter,
+				rightLoopBlockDelimiter,
+			),
 		},
 		{
 			Pattern: "/Register",
@@ -66,7 +83,14 @@ func registerHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func getRenderHandler(leftDelimiter string, rightDelimiter string) func(w http.ResponseWriter, r *http.Request) {
+func getRenderHandler(
+	leftDelimiter string,
+	rightDelimiter string,
+	leftLoopVariableDelimiter string,
+	rightLoopVariableDelimiter string,
+	leftLoopBlockDelimiter string,
+	rightLoopBlockDelimiter string,
+) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		type Params struct {
 			Variables map[string]interface{}
@@ -85,7 +109,18 @@ func getRenderHandler(leftDelimiter string, rightDelimiter string) func(w http.R
 			panic(err)
 		}
 
-		rendered := rendering.Render(string(content), params.Variables, leftDelimiter, rightDelimiter)
+		rendered := rendering.Render(
+			string(content),
+			params.Variables,
+			leftDelimiter,
+			rightDelimiter,
+			leftLoopVariableDelimiter,
+			rightLoopVariableDelimiter,
+			leftLoopBlockDelimiter,
+			rightLoopBlockDelimiter,
+			false,
+		)
+
 		w.Write([]byte(rendered))
 	}
 }

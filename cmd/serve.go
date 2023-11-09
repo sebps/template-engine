@@ -1,6 +1,5 @@
 /*
 Copyright © 2022 Seb P sebpsdev@gmail.com
-
 */
 package cmd
 
@@ -24,7 +23,21 @@ to quickly create a Cobra application.`,
 		port, _ := cmd.Flags().GetInt("port")
 		leftDelimiter, _ := cmd.Flags().GetString("leftDelimiter")
 		rightDelimiter, _ := cmd.Flags().GetString("rightDelimiter")
-		server.Serve(address, port, leftDelimiter, rightDelimiter)
+		leftLoopVariableDelimiter, _ := cmd.Flags().GetString("leftLoopVariableDelimiter")
+		rightLoopVariableDelimiter, _ := cmd.Flags().GetString("rightLoopVariableDelimiter")
+		leftLoopBlockDelimiter, _ := cmd.Flags().GetString("leftLoopBlockDelimiter")
+		rightLoopBlockDelimiter, _ := cmd.Flags().GetString("rightLoopBlockDelimiter")
+
+		server.Serve(
+			address,
+			port,
+			leftDelimiter,
+			rightDelimiter,
+			leftLoopVariableDelimiter,
+			rightLoopVariableDelimiter,
+			leftLoopBlockDelimiter,
+			rightLoopBlockDelimiter,
+		)
 	},
 }
 

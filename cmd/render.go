@@ -13,8 +13,29 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func renderAndWrite(template string, variables map[string]interface{}, leftDelimiter string, rightDelimiter string, path string) {
-	rendered := rendering.Render(template, variables, leftDelimiter, rightDelimiter)
+func renderAndWrite(
+	template string,
+	variables map[string]interface{},
+	leftDelimiter string,
+	rightDelimiter string,
+	leftLoopVariableDelimiter string,
+	rightLoopVariableDelimiter string,
+	leftLoopBlockDelimiter string,
+	rightLoopBlockDelimiter string,
+	panicIfNoMatch bool,
+	path string,
+) {
+	rendered := rendering.Render(
+		template,
+		variables,
+		leftDelimiter,
+		rightDelimiter,
+		leftLoopVariableDelimiter,
+		rightLoopVariableDelimiter,
+		leftLoopBlockDelimiter,
+		rightLoopBlockDelimiter,
+		panicIfNoMatch,
+	)
 
 	err := utils.WriteFileContent(path, rendered)
 	if err != nil {
@@ -33,6 +54,12 @@ var renderCmd = &cobra.Command{
 		data, _ := cmd.Flags().GetString("data")
 		leftDelimiter, _ := cmd.Flags().GetString("left-delimiter")
 		rightDelimiter, _ := cmd.Flags().GetString("right-delimiter")
+		leftLoopVariableDelimiter, _ := cmd.Flags().GetString("left-loop-variable-delimiter")
+		rightLoopVariableDelimiter, _ := cmd.Flags().GetString("right-loop-variable-delimiter")
+		leftLoopBlockDelimiter, _ := cmd.Flags().GetString("left-loop-block-delimiter")
+		rightLoopBlockDelimiter, _ := cmd.Flags().GetString("right-loop-block-delimiter")
+		panicIfNoMatch, _ := cmd.Flags().GetBool("panic-if-no-match")
+
 		keyColumn, _ := cmd.Flags().GetString("key-column")
 		loopVariable, _ := cmd.Flags().GetString("wrapping-loop-variable")
 
@@ -55,7 +82,18 @@ var renderCmd = &cobra.Command{
 					panic(err)
 				}
 
-				renderAndWrite(template, variables, leftDelimiter, rightDelimiter, pathOut)
+				renderAndWrite(
+					template,
+					variables,
+					leftDelimiter,
+					rightDelimiter,
+					leftLoopVariableDelimiter,
+					rightLoopVariableDelimiter,
+					leftLoopBlockDelimiter,
+					rightLoopBlockDelimiter,
+					panicIfNoMatch,
+					pathOut,
+				)
 
 				return nil
 			})
@@ -65,7 +103,18 @@ var renderCmd = &cobra.Command{
 				panic(err)
 			}
 
-			renderAndWrite(template, variables, leftDelimiter, rightDelimiter, out)
+			renderAndWrite(
+				template,
+				variables,
+				leftDelimiter,
+				rightDelimiter,
+				leftLoopVariableDelimiter,
+				rightLoopVariableDelimiter,
+				leftLoopBlockDelimiter,
+				rightLoopBlockDelimiter,
+				panicIfNoMatch,
+				out,
+			)
 		}
 	},
 }
@@ -79,6 +128,11 @@ func init() {
 	renderCmd.Flags().StringP("data", "d", "", "Data variables path ( json file )")
 	renderCmd.Flags().StringP("left-delimiter", "l", "{{", "Left variable delimiter ( default is {{ )")
 	renderCmd.Flags().StringP("right-delimiter", "r", "}}", "Right variable delimiter ( default is }} )")
+	renderCmd.Flags().StringP("left-loop-variable-delimiter", "", "(", "Left loop variable delimiter ( default is '(' )")
+	renderCmd.Flags().StringP("right-loop-variable-delimiter", "", ")", "Right loop variable delimiter ( default is ')' )")
+	renderCmd.Flags().StringP("left-loop-block-delimiter", "", "[", "Left loop block delimiter ( default is '[' )")
+	renderCmd.Flags().StringP("right-loop-block-delimiter", "", "]", "Right loop block delimiter ( default is ']' )")
+	renderCmd.Flags().StringP("panic-if-no-match", "p", "}}", "Panic if a variable is not found in the data")
 	renderCmd.Flags().StringP("key-column", "k", "id", "Key column ( for .csv variable file ) ( default is 'id' }} )")
 	renderCmd.Flags().StringP("wrapping-loop-variable", "w", "root", "Name of the root loop variables in template ( for .csv variable file ) ( default is 'loop' }} )")
 	renderCmd.MarkFlagRequired("in")

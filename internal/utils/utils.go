@@ -1,10 +1,12 @@
 package utils
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"regexp"
+	"strings"
 )
 
 var nonAlphanumericRegex = regexp.MustCompile(`[^a-zA-Z0-9 ]+`)
@@ -38,4 +40,53 @@ func WriteFileContent(path string, content string) error {
 	_, err = f.WriteString(content)
 
 	return err
+}
+
+func GenerateWrapperRegexp(
+	wrapperStart string,
+	wrapperEnd string,
+	wrapperGroup string,
+	wrapperLineBreak bool,
+) (output string) {
+	characters := make([]string, 0, len(wrapperEnd))
+	for _, r := range wrapperEnd {
+		c := string(r)
+		characters = append(characters, c)
+	}
+
+	contentPatterns := make([]string, 0)
+	if wrapperLineBreak {
+		contentPatterns = append(contentPatterns, "\n\\s*")
+	}
+
+	for i := 0; i < len(characters); i++ {
+		contentPattern := ""
+		ci := characters[i]
+		for j := 0; j < i; j++ {
+			cj := characters[j]
+			contentPattern += regexp.QuoteMeta(cj)
+		}
+		contentPattern += fmt.Sprintf("[^%s]", regexp.QuoteMeta(ci))
+		contentPatterns = append(contentPatterns, contentPattern)
+	}
+
+	if wrapperLineBreak {
+		output = fmt.Sprintf(
+			"\\s*%s(\n|\r\n)(?P<%s>(%s)*)(\n|\r\n)\\s*%s",
+			regexp.QuoteMeta(wrapperStart),
+			wrapperGroup,
+			strings.Join(contentPatterns, "|"),
+			regexp.QuoteMeta(wrapperEnd),
+		)
+	} else {
+		output = fmt.Sprintf(
+			"%s(?P<%s>(%s)*)%s",
+			regexp.QuoteMeta(wrapperStart),
+			wrapperGroup,
+			strings.Join(contentPatterns, "|"),
+			regexp.QuoteMeta(wrapperEnd),
+		)
+	}
+
+	return
 }
