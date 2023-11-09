@@ -45,6 +45,7 @@ func parseCSV(path string, keyCol string, loopVariable string) (map[string]inter
 	records := make(map[string][]string)
 	cols := make(map[int]string)
 	rows := make(map[int]string)
+	orderedCols := make([]string, 0)
 
 	rowNum := 0
 	for {
@@ -58,8 +59,10 @@ func parseCSV(path string, keyCol string, loopVariable string) (map[string]inter
 
 		if rowNum == 0 {
 			for colNum, col := range record {
-				records[utils.ClearString(col)] = make([]string, 0)
-				cols[colNum] = utils.ClearString(col)
+				colName := utils.ClearString(col)
+				records[colName] = make([]string, 0)
+				cols[colNum] = colName
+				orderedCols = append(orderedCols, colName)
 			}
 		} else {
 			for colNum, value := range record {
@@ -78,13 +81,15 @@ func parseCSV(path string, keyCol string, loopVariable string) (map[string]inter
 	formattedVariables := make(map[string][]map[string]string)
 	formattedVariables[loopVariable] = make([]map[string]string, len(records)-1)
 	currentIndex := 0
-	for mapKey, mapValue := range records {
-		if strings.Compare(utils.ClearString(mapKey), keyCol) == 0 {
+
+	for _, colName := range orderedCols {
+		if strings.Compare(colName, keyCol) == 0 {
 			continue
 		}
 
+		recordValues := records[colName]
 		formattedVariables[loopVariable][currentIndex] = make(map[string]string)
-		for sliceIndex, sliceValue := range mapValue {
+		for sliceIndex, sliceValue := range recordValues {
 			variable := rows[sliceIndex]
 			if variable != "" {
 				formattedVariables[loopVariable][currentIndex][variable] = sliceValue
