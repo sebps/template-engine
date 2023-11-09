@@ -59,6 +59,9 @@ func parseCSV(path string, keyCol string, loopVariable string) (map[string]inter
 
 		if rowNum == 0 {
 			for colNum, col := range record {
+				if colNum == len(record)-1 && col == "" {
+					continue
+				}
 				colName := utils.ClearString(col)
 				records[colName] = make([]string, 0)
 				cols[colNum] = colName
@@ -67,7 +70,8 @@ func parseCSV(path string, keyCol string, loopVariable string) (map[string]inter
 		} else {
 			for colNum, value := range record {
 				col := cols[colNum]
-				if strings.Compare(utils.ClearString(col), keyCol) == 0 {
+				colName := utils.ClearString(col)
+				if strings.Compare(colName, keyCol) == 0 {
 					rows[rowNum-1] = strings.TrimSpace(value)
 				} else {
 					records[col] = append(records[col], value)
@@ -80,9 +84,8 @@ func parseCSV(path string, keyCol string, loopVariable string) (map[string]inter
 
 	formattedVariables := make(map[string][]map[string]string)
 	formattedVariables[loopVariable] = make([]map[string]string, len(records)-1)
-	currentIndex := 0
 
-	for _, colName := range orderedCols {
+	for currentIndex, colName := range orderedCols {
 		if strings.Compare(colName, keyCol) == 0 {
 			continue
 		}
@@ -95,7 +98,6 @@ func parseCSV(path string, keyCol string, loopVariable string) (map[string]inter
 				formattedVariables[loopVariable][currentIndex][variable] = sliceValue
 			}
 		}
-		currentIndex++
 	}
 
 	variablesBytes, err := json.Marshal(formattedVariables)
