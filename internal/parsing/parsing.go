@@ -83,7 +83,7 @@ func parseCSV(path string, keyCol string, loopVariable string) (map[string]inter
 	}
 
 	formattedVariables := make(map[string][]map[string]string)
-	formattedVariables[loopVariable] = make([]map[string]string, len(records)-1)
+	formattedVariables[loopVariable] = make([]map[string]string, len(orderedCols)-1)
 
 	for currentIndex, colName := range orderedCols {
 		if strings.Compare(colName, keyCol) == 0 {
