@@ -247,34 +247,50 @@ func Interpolate(
 	leftDelimiter string,
 	rightDelimiter string,
 	panicIfNoMatch bool,
-) string {
-	var rendered = structure
+) (rendered string, replacements int, success bool) {
+	// initialize rendered content to input structure
+	rendered = structure
+	success = true
+	replacements = 0
 
 	for k, v := range variables {
-		rendered = strings.ReplaceAll(rendered, leftDelimiter+k+rightDelimiter, fmt.Sprintf("%v", v))
+		repl := func(match string) string {
+			replacements++
+			return fmt.Sprintf("%v", v)
+		}
+
+		re := regexp.MustCompile(leftDelimiter + k + rightDelimiter)
+		rendered = re.ReplaceAllStringFunc(rendered, repl)
+		// rendered = strings.ReplaceAll(rendered, leftDelimiter+k+rightDelimiter, fmt.Sprintf("%v", v))
 	}
 
-	if panicIfNoMatch {
-		variableWrapperRegexString := utils.GenerateWrapperRegexp(
-			leftDelimiter,
-			rightDelimiter,
-			"variable",
-			false,
-		)
-		variableRegexp := regexp.MustCompile(variableWrapperRegexString)
-		variableGroupNames := variableRegexp.SubexpNames()
+	// check if all the variables were successfully replaced ( if at least one occurence of the variable interpolation pattern is still in the rendered string the answer is no )
+	failedVariable := ""
 
-		for _, variableMatch := range variableRegexp.FindAllStringSubmatch(rendered, -1) {
-			for variableGroupIdx, variableGroupContent := range variableMatch {
-				name := variableGroupNames[variableGroupIdx]
-				if name == "variable" {
-					panic(fmt.Sprintf("variable : %q not found in data", variableGroupContent))
-				}
+	variableWrapperRegexString := utils.GenerateWrapperRegexp(
+		leftDelimiter,
+		rightDelimiter,
+		"variable",
+		false,
+	)
+	variableRegexp := regexp.MustCompile(variableWrapperRegexString)
+	variableGroupNames := variableRegexp.SubexpNames()
+
+	for _, variableMatch := range variableRegexp.FindAllStringSubmatch(rendered, -1) {
+		for variableGroupIdx, variableGroupContent := range variableMatch {
+			name := variableGroupNames[variableGroupIdx]
+			if name == "variable" {
+				success = false
+				failedVariable = variableGroupContent
 			}
 		}
 	}
 
-	return rendered
+	if panicIfNoMatch && !success {
+		panic(fmt.Sprintf("variable : %q not found in data", failedVariable))
+	}
+
+	return
 }
 
 func Render(
@@ -333,7 +349,7 @@ func Render(
 		loops,
 	)
 
-	rendered = Interpolate(
+	rendered, _, _ = Interpolate(
 		flatStructure,
 		flatVariables,
 		leftDelimiter,

@@ -2,7 +2,6 @@ package utils
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -16,7 +15,7 @@ func ClearString(str string) string {
 }
 
 func ReadFileContent(filePath string) (string, error) {
-	fileRawContent, err := ioutil.ReadFile(filePath)
+	fileRawContent, err := os.ReadFile(filePath)
 	if err != nil {
 		return "", err
 	}

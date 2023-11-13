@@ -4,7 +4,6 @@ import (
 	"encoding/csv"
 	"encoding/json"
 	"io"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -13,10 +12,10 @@ import (
 	"github.com/sebps/template-engine/internal/utils"
 )
 
-func parseJSON(path string) (map[string]interface{}, error) {
-	var variables map[string]interface{}
+func parseMultiJSON(path string) ([]map[string]interface{}, error) {
+	var variables []map[string]interface{}
 
-	variablesBytes, err := ioutil.ReadFile(path)
+	variablesBytes, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
@@ -29,9 +28,23 @@ func parseJSON(path string) (map[string]interface{}, error) {
 	return variables, nil
 }
 
-func parseCSV(path string, keyCol string, loopVariable string) (map[string]interface{}, error) {
+func parseSingleJSON(path string) (map[string]interface{}, error) {
 	var variables map[string]interface{}
 
+	variablesBytes, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.Unmarshal(variablesBytes, &variables)
+	if err != nil {
+		return nil, err
+	}
+
+	return variables, nil
+}
+
+func doParseCSV(path string, keyCol string, loopVariable string) ([]map[string]string, error) {
 	fd, err := os.Open(path)
 	if err != nil {
 		return nil, err
@@ -82,22 +95,55 @@ func parseCSV(path string, keyCol string, loopVariable string) (map[string]inter
 		rowNum++
 	}
 
-	formattedVariables := make(map[string][]map[string]string)
-	formattedVariables[loopVariable] = make([]map[string]string, len(orderedCols)-1)
-
+	rootLoop := make([]map[string]string, len(orderedCols)-1)
 	for currentIndex, colName := range orderedCols {
 		if strings.Compare(colName, keyCol) == 0 {
 			continue
 		}
 
 		recordValues := records[colName]
-		formattedVariables[loopVariable][currentIndex] = make(map[string]string)
+		rootLoop[currentIndex] = make(map[string]string)
 		for sliceIndex, sliceValue := range recordValues {
 			variable := rows[sliceIndex]
 			if variable != "" {
-				formattedVariables[loopVariable][currentIndex][variable] = sliceValue
+				rootLoop[currentIndex][variable] = sliceValue
 			}
 		}
+	}
+
+	return rootLoop, nil
+}
+
+func parseSingleCSV(path string, keyCol string, loopVariable string) (map[string]interface{}, error) {
+	var variables map[string]interface{}
+
+	rootLoop, err := doParseCSV(path, keyCol, loopVariable)
+	if err != nil {
+		return nil, err
+	}
+
+	formattedVariables := make(map[string][]map[string]string)
+	formattedVariables[loopVariable] = rootLoop
+
+	variablesBytes, err := json.Marshal(formattedVariables)
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.Unmarshal(variablesBytes, &variables)
+	if err != nil {
+		return nil, err
+	}
+
+	return variables, nil
+}
+
+func parseMultiCSV(path string, keyCol string, loopVariable string) ([]map[string]interface{}, error) {
+	var variables []map[string]interface{}
+
+	formattedVariables, err := doParseCSV(path, keyCol, loopVariable)
+	if err != nil {
+		return nil, err
 	}
 
 	variablesBytes, err := json.Marshal(formattedVariables)
@@ -113,19 +159,40 @@ func parseCSV(path string, keyCol string, loopVariable string) (map[string]inter
 	return variables, nil
 }
 
-func ParseVariables(path string, keyColumn string, loopVariable string) map[string]interface{} {
+func ParseSingleVariables(path string, keyColumn string, loopVariable string) map[string]interface{} {
 	var variables map[string]interface{}
 	var err error
 
 	ext := filepath.Ext(path)
 	switch ext {
 	case ".json":
-		variables, err = parseJSON(path)
+		variables, err = parseSingleJSON(path)
 		if err != nil {
 			log.Fatal(err)
 		}
 	case ".csv":
-		variables, err = parseCSV(path, keyColumn, loopVariable)
+		variables, err = parseSingleCSV(path, keyColumn, loopVariable)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
+	return variables
+}
+
+func ParseMultiVariables(path string, keyColumn string, loopVariable string) []map[string]interface{} {
+	var variables []map[string]interface{}
+	var err error
+
+	ext := filepath.Ext(path)
+	switch ext {
+	case ".json":
+		variables, err = parseMultiJSON(path)
+		if err != nil {
+			log.Fatal(err)
+		}
+	case ".csv":
+		variables, err = parseMultiCSV(path, keyColumn, loopVariable)
 		if err != nil {
 			log.Fatal(err)
 		}

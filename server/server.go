@@ -3,7 +3,6 @@ package server
 import (
 	"encoding/json"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -104,7 +103,7 @@ func getRenderHandler(
 			return
 		}
 
-		content, err := ioutil.ReadFile(TEMPLATE_DIR + "/" + params.Template)
+		content, err := os.ReadFile(TEMPLATE_DIR + "/" + params.Template)
 		if err != nil {
 			panic(err)
 		}
