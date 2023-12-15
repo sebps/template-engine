@@ -34,13 +34,15 @@ func renderAndWrite(
 		currentPathOut := path
 
 		if isMultipleOutput {
-			currentPathOutExtension := filepath.Ext(currentPathOut)
-			currentPathOutRoot := strings.Replace(currentPathOut, currentPathOutExtension, "", 1)
-			currentPathOutRoot = strings.ReplaceAll(multipleOutputFilenamePattern, "{0}", currentPathOutRoot)
-			currentPathOutRoot = strings.ReplaceAll(currentPathOutRoot, "{0}", currentPathOutRoot)
-			currentPathOutRoot = strings.ReplaceAll(currentPathOutRoot, "{i}", fmt.Sprint(strconv.Itoa(i)))
-			currentPathOutRoot, _, _ = rendering.Interpolate(currentPathOutRoot, variables, "{", "}", true)
-			currentPathOut = currentPathOutRoot + currentPathOutExtension
+			currentPathDir := filepath.Dir(path)
+			currentPathExtension := filepath.Ext(path)
+			currentPathBase := filepath.Base(path)
+			currentPathBase = strings.Replace(currentPathBase, currentPathExtension, "", 1)
+			currentPathBase = strings.ReplaceAll(multipleOutputFilenamePattern, "{0}", currentPathBase)
+			currentPathBase = strings.ReplaceAll(currentPathBase, "{i}", fmt.Sprint(strconv.Itoa(i)))
+			currentPathBase, _, _ = rendering.Interpolate(currentPathBase, variables, "{", "}", true)
+			currentPathBase = currentPathBase + "." + currentPathExtension
+			currentPathOut = filepath.Join(currentPathDir, currentPathBase)
 		}
 
 		rendered := rendering.Render(
