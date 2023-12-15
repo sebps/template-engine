@@ -41,7 +41,7 @@ func renderAndWrite(
 			currentPathBase = strings.ReplaceAll(multipleOutputFilenamePattern, "{0}", currentPathBase)
 			currentPathBase = strings.ReplaceAll(currentPathBase, "{i}", fmt.Sprint(strconv.Itoa(i)))
 			currentPathBase, _, _ = rendering.Interpolate(currentPathBase, variables, "{", "}", true)
-			currentPathBase = currentPathBase + "." + currentPathExtension
+			currentPathBase = currentPathBase + currentPathExtension
 			currentPathOut = filepath.Join(currentPathDir, currentPathBase)
 		}
 
