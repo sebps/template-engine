@@ -350,7 +350,9 @@ func ParseSingleVariablesFile(path string, keyColumn string, loopVariable string
 		}
 	}
 
-	variables = filterSingleVariables(variables, jsonPathFilter)
+	if len(jsonPathFilter) > 0 {
+		variables = filterSingleVariables(variables, jsonPathFilter)
+	}
 
 	return variables
 }
@@ -383,7 +385,9 @@ func ParseMultiVariablesFile(path string, keyColumn string, loopVariable string,
 		}
 	}
 
-	variables = filterMultiVariables(variables, jsonPathFilter)
+	if len(jsonPathFilter) > 0 {
+		variables = filterMultiVariables(variables, jsonPathFilter)
+	}
 
 	return variables
 }
