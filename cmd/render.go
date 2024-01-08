@@ -4,12 +4,14 @@ Copyright © 2022 Seb P sebpsdev@gmail.com
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
 
+	"github.com/sebps/template-engine/internal/filtering"
 	"github.com/sebps/template-engine/internal/parsing"
 	"github.com/sebps/template-engine/internal/rendering"
 	"github.com/sebps/template-engine/internal/utils"
@@ -73,15 +75,16 @@ var renderCmd = &cobra.Command{
 		in, _ := cmd.Flags().GetString("in")
 		out, _ := cmd.Flags().GetString("out")
 		data, _ := cmd.Flags().GetString("data")
+		dataFilter, _ := cmd.Flags().GetString("data-filter")
 		leftDelimiter, _ := cmd.Flags().GetString("left-delimiter")
 		rightDelimiter, _ := cmd.Flags().GetString("right-delimiter")
 		leftLoopVariableDelimiter, _ := cmd.Flags().GetString("left-loop-variable-delimiter")
 		rightLoopVariableDelimiter, _ := cmd.Flags().GetString("right-loop-variable-delimiter")
 		leftLoopBlockDelimiter, _ := cmd.Flags().GetString("left-loop-block-delimiter")
 		rightLoopBlockDelimiter, _ := cmd.Flags().GetString("right-loop-block-delimiter")
+		loopVariable, _ := cmd.Flags().GetString("wrapping-loop-variable")
 		panicIfNoMatch, _ := cmd.Flags().GetBool("panic-if-no-match")
 		keyColumn, _ := cmd.Flags().GetString("key-column")
-		loopVariable, _ := cmd.Flags().GetString("wrapping-loop-variable")
 		multipleOutput, _ := cmd.Flags().GetString("multiple-output")
 		multipleOutputFilenamePattern, _ := cmd.Flags().GetString("multiple-output-filename-pattern")
 
@@ -92,13 +95,24 @@ var renderCmd = &cobra.Command{
 			isMultipleOutput = false
 		}
 
+		if dataFilter != "" {
+			if !filtering.IsJsonPathCompliant(dataFilter) {
+				panic(errors.New("wrong data filter format"))
+			}
+			dataFileExt := filepath.Ext(data)
+			if !isMultipleOutput && (dataFileExt == ".csv" || dataFileExt == ".xlsx") {
+				// tweak the json path filter to reflect the loop variable for tabular format input
+				dataFilter = filtering.RewriteJsonPathFilterPathPart(dataFilter, loopVariable)
+			}
+		}
+
 		var variablesSets []map[string]interface{}
 		switch isMultipleOutput {
 		case true:
-			variablesSets = parsing.ParseMultiVariables(data, keyColumn, loopVariable)
+			variablesSets = parsing.ParseMultiVariablesFile(data, keyColumn, loopVariable, dataFilter)
 		case false:
 			variablesSets = make([]map[string]interface{}, 1)
-			variablesSets[0] = parsing.ParseSingleVariables(data, keyColumn, loopVariable)
+			variablesSets[0] = parsing.ParseSingleVariablesFile(data, keyColumn, loopVariable, dataFilter)
 		}
 
 		switch mode {
@@ -167,6 +181,7 @@ func init() {
 	renderCmd.Flags().StringP("out", "o", "", "Output path ( file or dir )")
 	renderCmd.Flags().StringP("mode", "m", "file", "Parsing mode ( 'file' or 'dir' ) ( default is 'file' )")
 	renderCmd.Flags().StringP("data", "d", "", "Data variables path ( json / csv file )")
+	renderCmd.Flags().StringP("data-filter", "f", "", "JSONPath filtering expression on data to reduce the input data before rendering")
 	renderCmd.Flags().StringP("left-delimiter", "l", "{{", "Left variable delimiter ( default is {{ )")
 	renderCmd.Flags().StringP("right-delimiter", "r", "}}", "Right variable delimiter ( default is }} )")
 	renderCmd.Flags().StringP("left-loop-variable-delimiter", "", "(", "Left loop variable delimiter ( default is '(' )")

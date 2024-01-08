@@ -1,14 +1,18 @@
 package parsing
 
 import (
+	"bytes"
 	"encoding/csv"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"io"
 	"log"
 	"os"
 	"path/filepath"
 	"strings"
 
+	"github.com/sebps/jsonpath"
 	"github.com/sebps/template-engine/internal/utils"
 	"github.com/xuri/excelize/v2"
 )
@@ -49,9 +53,9 @@ func doParseCSV(data []byte, keyCol string, loopVariable string) ([]map[string]i
 		if err == io.EOF {
 			break
 		}
-	if err != nil {
-		return nil, err
-	}
+		if err != nil {
+			return nil, err
+		}
 
 		if rowNum == 0 {
 			for colNum, colName := range row {
@@ -334,10 +338,12 @@ func ParseSingleVariablesFile(path string, keyColumn string, loopVariable string
 		}
 	}
 
+	variables = filterSingleVariables(variables, jsonPathFilter)
+
 	return variables
 }
 
-func ParseMultiVariables(path string, keyColumn string, loopVariable string) []map[string]interface{} {
+func ParseMultiVariablesFile(path string, keyColumn string, loopVariable string, jsonPathFilter string) []map[string]interface{} {
 	var variables []map[string]interface{}
 	var err error
 
@@ -365,5 +371,49 @@ func ParseMultiVariables(path string, keyColumn string, loopVariable string) []m
 		}
 	}
 
+	variables = filterMultiVariables(variables, jsonPathFilter)
+
 	return variables
+}
+
+func filterSingleVariables(input map[string]interface{}, jsonPathFilter string) (output map[string]interface{}) {
+	output = make(map[string]interface{})
+
+	filteredVariables, err := jsonpath.JsonPathLookup(input, jsonPathFilter)
+	if err != nil {
+		panic("could not filter data based on jsonpath query")
+	}
+
+	if len(filteredVariables.([]interface{})) > 0 {
+		marshalled, err := json.Marshal(filteredVariables.([]interface{})[0])
+		if err != nil {
+			panic("could not filter data based on jsonpath query")
+		}
+
+		json.Unmarshal(marshalled, &output)
+	} else {
+		panic("could not filter data based on jsonpath query")
+	}
+
+	return
+}
+
+func filterMultiVariables(input []map[string]interface{}, jsonPathFilter string) (output []map[string]interface{}) {
+	output = make([]map[string]interface{}, 0)
+
+	filteredVariables, err := jsonpath.JsonPathLookup(input, jsonPathFilter)
+	if err != nil {
+		panic("could not filter data based on jsonpath query")
+	}
+
+	if len(filteredVariables.([]interface{})) > 0 {
+		marshalled, err := json.Marshal(filteredVariables)
+		if err != nil {
+			panic("could not filter data based on jsonpath query")
+		}
+
+		json.Unmarshal(marshalled, &output)
+	}
+
+	return
 }
