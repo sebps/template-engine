@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/sebps/template-engine/internal/utils"
+	"github.com/xuri/excelize/v2"
 )
 
 func ParseMultiJSON(data []byte) ([]map[string]interface{}, error) {
@@ -150,6 +151,71 @@ func doParseCSV_v0(data []byte, keyCol string, loopVariable string) ([]map[strin
 	return rootLoop, nil
 }
 
+func doParseXLSX(data []byte, keyCol string, loopVariable string) ([]map[string]interface{}, error) {
+	r := bytes.NewReader(data)
+
+	f, err := excelize.OpenReader(r)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		// Close the spreadsheet.
+		if err := f.Close(); err != nil {
+			fmt.Println(err)
+		}
+	}()
+
+	// process first sheet only
+	sheetName := f.GetSheetName(0)
+	rows, err := f.GetRows(sheetName)
+	if err != nil {
+		return nil, err
+	}
+
+	rootLoop := make([]map[string]interface{}, 0)
+
+	keyColNum := -1
+	rowNum := 0
+	for _, row := range rows {
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return nil, err
+		}
+
+		if rowNum == 0 {
+			for colNum, colName := range row {
+				if colName == keyCol {
+					keyColNum = colNum
+				} else {
+					rootLoop = append(rootLoop, make(map[string]interface{}))
+				}
+			}
+			if keyColNum == -1 {
+				return nil, errors.New("key column not found")
+			}
+		} else {
+			currentVariable := row[keyColNum]
+			if currentVariable == "" {
+				// if no variable no further processing of the current row
+				continue
+			}
+			for colNum, colValue := range row {
+				if colNum < keyColNum {
+					rootLoop[colNum][currentVariable] = colValue
+				} else if colNum > keyColNum {
+					rootLoop[colNum-1][currentVariable] = colValue
+				}
+			}
+		}
+
+		rowNum++
+	}
+
+	return rootLoop, nil
+}
+
 func ParseSingleCSV(data []byte, keyCol string, loopVariable string) (map[string]interface{}, error) {
 	var variables map[string]interface{}
 
@@ -194,14 +260,16 @@ func ParseMultiCSV(data []byte, keyCol string, loopVariable string) ([]map[strin
 
 	return variables, nil
 }
+
+func ParseSingleXLSX(data []byte, keyCol string, loopVariable string) (map[string]interface{}, error) {
 	var variables map[string]interface{}
 
-	rootLoop, err := doParseCSV(path, keyCol, loopVariable)
+	rootLoop, err := doParseXLSX(data, keyCol, loopVariable)
 	if err != nil {
 		return nil, err
 	}
 
-	formattedVariables := make(map[string][]map[string]string)
+	formattedVariables := make(map[string][]map[string]interface{})
 	formattedVariables[loopVariable] = rootLoop
 
 	variablesBytes, err := json.Marshal(formattedVariables)
@@ -217,10 +285,10 @@ func ParseMultiCSV(data []byte, keyCol string, loopVariable string) ([]map[strin
 	return variables, nil
 }
 
-func parseMultiCSV(path string, keyCol string, loopVariable string) ([]map[string]interface{}, error) {
+func ParseMultiXLSX(data []byte, keyCol string, loopVariable string) ([]map[string]interface{}, error) {
 	var variables []map[string]interface{}
 
-	formattedVariables, err := doParseCSV(path, keyCol, loopVariable)
+	formattedVariables, err := doParseXLSX(data, keyCol, loopVariable)
 	if err != nil {
 		return nil, err
 	}
@@ -259,6 +327,8 @@ func ParseSingleVariablesFile(path string, keyColumn string, loopVariable string
 		if err != nil {
 			log.Fatal(err)
 		}
+	case ".xlsx":
+		variables, err = ParseSingleXLSX(variablesBytes, keyColumn, loopVariable)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -288,6 +358,8 @@ func ParseMultiVariables(path string, keyColumn string, loopVariable string) []m
 		if err != nil {
 			log.Fatal(err)
 		}
+	case ".xlsx":
+		variables, err = ParseMultiXLSX(variablesBytes, keyColumn, loopVariable)
 		if err != nil {
 			log.Fatal(err)
 		}
