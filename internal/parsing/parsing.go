@@ -48,6 +48,7 @@ func doParseCSV(data []byte, keyCol string, loopVariable string) ([]map[string]i
 
 	keyColNum := -1
 	rowNum := 0
+	tableSize := 0
 	for {
 		row, err := fileReader.Read()
 		if err == io.EOF {
@@ -64,11 +65,16 @@ func doParseCSV(data []byte, keyCol string, loopVariable string) ([]map[string]i
 				} else {
 					rootLoop = append(rootLoop, make(map[string]interface{}))
 				}
+				tableSize++
 			}
 			if keyColNum == -1 {
 				return nil, errors.New("key column not found")
 			}
 		} else {
+			if len(row) != tableSize {
+				// if wrong row length no further processing of the current row
+				continue
+			}
 			currentVariable := row[keyColNum]
 			if currentVariable == "" {
 				// if no variable no further processing of the current row
@@ -180,6 +186,7 @@ func doParseXLSX(data []byte, keyCol string, loopVariable string) ([]map[string]
 
 	keyColNum := -1
 	rowNum := 0
+	tableSize := 0
 	for _, row := range rows {
 		if err == io.EOF {
 			break
@@ -195,11 +202,16 @@ func doParseXLSX(data []byte, keyCol string, loopVariable string) ([]map[string]
 				} else {
 					rootLoop = append(rootLoop, make(map[string]interface{}))
 				}
+				tableSize++
 			}
 			if keyColNum == -1 {
 				return nil, errors.New("key column not found")
 			}
 		} else {
+			if len(row) != tableSize {
+				// if wrong row length no further processing of the current row
+				continue
+			}
 			currentVariable := row[keyColNum]
 			if currentVariable == "" {
 				// if no variable no further processing of the current row
