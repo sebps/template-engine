@@ -11,6 +11,10 @@ import (
 
 var nonAlphanumericRegex = regexp.MustCompile(`[^a-zA-Z0-9 ]+`)
 
+func RegexpEscapeString(str string) string {
+	return regexp.QuoteMeta(str)
+}
+
 func ClearString(str string) string {
 	return nonAlphanumericRegex.ReplaceAllString(str, "")
 }

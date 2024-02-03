@@ -259,7 +259,8 @@ func Interpolate(
 			return fmt.Sprintf("%v", v)
 		}
 
-		re := regexp.MustCompile(leftDelimiter + k + rightDelimiter)
+		regexpExpression := utils.RegexpEscapeString(leftDelimiter + k + rightDelimiter)
+		re := regexp.MustCompile(regexpExpression)
 		rendered = re.ReplaceAllStringFunc(rendered, repl)
 		// rendered = strings.ReplaceAll(rendered, leftDelimiter+k+rightDelimiter, fmt.Sprintf("%v", v))
 	}
