@@ -71,7 +71,6 @@ var renderCmd = &cobra.Command{
 	Short: "Render a single file or a full directory",
 	Long:  "Render a single file or a full directory",
 	Run: func(cmd *cobra.Command, args []string) {
-		mode, _ := cmd.Flags().GetString("mode")
 		in, _ := cmd.Flags().GetString("in")
 		out, _ := cmd.Flags().GetString("out")
 		data, _ := cmd.Flags().GetString("data")
@@ -95,6 +94,19 @@ var renderCmd = &cobra.Command{
 			isMultipleOutput = false
 		}
 
+		/* rules start */
+		inFileInfo, err := os.Stat(in)
+		if err != nil {
+			panic(err)
+		}
+
+		outFileInfo, err := os.Stat(out)
+		if err == nil {
+			if inFileInfo.IsDir() != outFileInfo.IsDir() {
+				panic(errors.New("input and output must be of the same type ( file or directory )"))
+			}
+		}
+
 		if dataFilter != "" {
 			if !filtering.IsJsonPathCompliant(dataFilter) {
 				panic(errors.New("wrong data filter format"))
@@ -105,6 +117,7 @@ var renderCmd = &cobra.Command{
 				dataFilter = filtering.RewriteJsonPathFilterPathPart(dataFilter, loopVariable)
 			}
 		}
+		/* rules end */
 
 		var variablesSets []map[string]interface{}
 		switch isMultipleOutput {
@@ -115,8 +128,7 @@ var renderCmd = &cobra.Command{
 			variablesSets[0] = parsing.ParseSingleVariablesFile(data, keyColumn, loopVariable, dataFilter)
 		}
 
-		switch mode {
-		case "dir", "DIR":
+		if inFileInfo.IsDir() {
 			filepath.Walk(in, func(pathIn string, info os.FileInfo, err error) error {
 				if err != nil {
 					panic(err)
@@ -150,7 +162,7 @@ var renderCmd = &cobra.Command{
 
 				return nil
 			})
-		case "file", "FILE":
+		} else {
 			template, err := utils.ReadFileContent(in)
 			if err != nil {
 				panic(err)
@@ -179,7 +191,6 @@ func init() {
 
 	renderCmd.Flags().StringP("in", "i", "", "Input path ( file or dir )")
 	renderCmd.Flags().StringP("out", "o", "", "Output path ( file or dir )")
-	renderCmd.Flags().StringP("mode", "m", "file", "Parsing mode ( 'file' or 'dir' ) ( default is 'file' )")
 	renderCmd.Flags().StringP("data", "d", "", "Data variables path ( json / csv file )")
 	renderCmd.Flags().StringP("data-filter", "f", "", "JSONPath filtering expression on data to reduce the input data before rendering")
 	renderCmd.Flags().StringP("left-delimiter", "l", "{{", "Left variable delimiter ( default is {{ )")
@@ -188,7 +199,7 @@ func init() {
 	renderCmd.Flags().StringP("right-loop-variable-delimiter", "", ")", "Right loop variable delimiter ( default is ')' )")
 	renderCmd.Flags().StringP("left-loop-block-delimiter", "", "[", "Left loop block delimiter ( default is '[' )")
 	renderCmd.Flags().StringP("right-loop-block-delimiter", "", "]", "Right loop block delimiter ( default is ']' )")
-	renderCmd.Flags().StringP("panic-if-no-match", "p", "}}", "Panic if a variable is not found in the data")
+	renderCmd.Flags().StringP("panic-if-no-match", "p", "true", "Panic if a variable is not found in the data")
 	renderCmd.Flags().StringP("key-column", "k", "id", "Key column ( for .csv variable file ) ( default is 'id' }} )")
 	renderCmd.Flags().StringP("wrapping-loop-variable", "w", "$", "Name of the root loop variables in template ( for .csv variable file ) ( default is 'loop' }} )")
 	renderCmd.Flags().StringP("multiple-output", "", "false", "Whether to generate multiple files from input template and an input data array ( default is 'false' }} )")
