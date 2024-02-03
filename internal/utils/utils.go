@@ -23,7 +23,7 @@ func ClearBOM(byt []byte) []byte {
 	bom := []byte("\ufeff")
 	i := bytes.Index([]byte(byt), bom)
 	if i == 0 {
-		return byt[len(byt):]
+		return byt[len(bom):]
 	}
 
 	return byt
