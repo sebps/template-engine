@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -12,6 +13,16 @@ var nonAlphanumericRegex = regexp.MustCompile(`[^a-zA-Z0-9 ]+`)
 
 func ClearString(str string) string {
 	return nonAlphanumericRegex.ReplaceAllString(str, "")
+}
+
+func ClearBOM(byt []byte) []byte {
+	bom := []byte("\ufeff")
+	i := bytes.Index([]byte(byt), bom)
+	if i == 0 {
+		return byt[len(byt):]
+	}
+
+	return byt
 }
 
 func ReadFileContent(filePath string) (string, error) {
@@ -88,4 +99,12 @@ func GenerateWrapperRegexp(
 	}
 
 	return
+}
+
+func IsJsonArray(content string) bool {
+	return false
+}
+
+func IsJsonObject(content string) bool {
+	return false
 }

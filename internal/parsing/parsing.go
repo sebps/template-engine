@@ -233,6 +233,8 @@ func doParseXLSX(data []byte, keyCol string, loopVariable string) ([]map[string]
 }
 
 func ParseSingleCSV(data []byte, keyCol string, loopVariable string) (map[string]interface{}, error) {
+	data = utils.ClearBOM(data)
+
 	var variables map[string]interface{}
 
 	rootLoop, err := doParseCSV(data, keyCol, loopVariable)
@@ -257,6 +259,8 @@ func ParseSingleCSV(data []byte, keyCol string, loopVariable string) (map[string
 }
 
 func ParseMultiCSV(data []byte, keyCol string, loopVariable string) ([]map[string]interface{}, error) {
+	data = utils.ClearBOM(data)
+
 	var variables []map[string]interface{}
 
 	formattedVariables, err := doParseCSV(data, keyCol, loopVariable)

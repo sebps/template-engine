@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
-	"unicode"
 
 	"github.com/sebps/template-engine/internal/utils"
 )
@@ -109,9 +108,10 @@ func ParseLoops(
 func CountLeadingWhitespaces(s string) int {
 	spaces := 0
 	runes := []rune(s)
+	spaceRune := rune(' ')
 
 	for _, r := range runes {
-		if unicode.IsSpace(r) {
+		if r == spaceRune {
 			spaces++
 		} else {
 			break
