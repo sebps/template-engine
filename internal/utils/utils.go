@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"reflect"
 	"regexp"
 	"strings"
 )
@@ -111,4 +112,14 @@ func IsJsonArray(content string) bool {
 
 func IsJsonObject(content string) bool {
 	return false
+}
+
+func IsArray(input interface{}) bool {
+	tInput := reflect.TypeOf(input)
+	switch tInput.Kind() {
+	case reflect.Slice, reflect.Array:
+		return true
+	default:
+		return false
+	}
 }

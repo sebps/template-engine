@@ -73,7 +73,7 @@ var renderCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		in, _ := cmd.Flags().GetString("in")
 		out, _ := cmd.Flags().GetString("out")
-		data, _ := cmd.Flags().GetString("data")
+		dataPath, _ := cmd.Flags().GetString("data")
 		dataFilter, _ := cmd.Flags().GetString("data-filter")
 		panicIfNoMatch, _ := cmd.Flags().GetBool("panic-if-no-match")
 		leftDelimiter, _ := cmd.Flags().GetString("left-delimiter")
@@ -83,7 +83,7 @@ var renderCmd = &cobra.Command{
 		leftLoopBlockDelimiter, _ := cmd.Flags().GetString("left-loop-block-delimiter")
 		rightLoopBlockDelimiter, _ := cmd.Flags().GetString("right-loop-block-delimiter")
 		keyColumn, _ := cmd.Flags().GetString("key-column")
-		loopVariable, _ := cmd.Flags().GetString("wrapping-loop-variable")
+		loopVariable, _ := cmd.Flags().GetString("injection-loop-variable")
 		multipleOutput, _ := cmd.Flags().GetString("multiple-output")
 		multipleOutputFilenamePattern, _ := cmd.Flags().GetString("multiple-output-filename-pattern")
 
@@ -111,21 +111,17 @@ var renderCmd = &cobra.Command{
 			if !filtering.IsJsonPathCompliant(dataFilter) {
 				panic(errors.New("wrong data filter format"))
 			}
-			dataFileExt := filepath.Ext(data)
+			dataFileExt := filepath.Ext(dataPath)
 			if !isMultipleOutput && (dataFileExt == ".csv" || dataFileExt == ".xlsx") {
 				// tweak the json path filter to reflect the loop variable for tabular format input
-				dataFilter = filtering.RewriteJsonPathFilterPathPart(dataFilter, loopVariable)
+				// dataFilter = filtering.RewriteJsonPathFilterPathPart(dataFilter, loopVariable)
 			}
 		}
 		/* rules end */
 
-		var variablesSets []map[string]interface{}
-		switch isMultipleOutput {
-		case true:
-			variablesSets = parsing.ParseMultiVariablesFile(data, keyColumn, loopVariable, dataFilter)
-		case false:
-			variablesSets = make([]map[string]interface{}, 1)
-			variablesSets[0] = parsing.ParseSingleVariablesFile(data, keyColumn, loopVariable, dataFilter)
+		variables, err := parsing.ParseVariablesFile(dataPath, dataFilter, keyColumn, isMultipleOutput, loopVariable)
+		if err != nil {
+			panic(err)
 		}
 
 		if inFileInfo.IsDir() {
@@ -147,7 +143,7 @@ var renderCmd = &cobra.Command{
 
 				renderAndWrite(
 					template,
-					variablesSets,
+					variables,
 					leftDelimiter,
 					rightDelimiter,
 					leftLoopVariableDelimiter,
@@ -170,7 +166,7 @@ var renderCmd = &cobra.Command{
 
 			renderAndWrite(
 				template,
-				variablesSets,
+				variables,
 				leftDelimiter,
 				rightDelimiter,
 				leftLoopVariableDelimiter,
@@ -201,7 +197,7 @@ func init() {
 	renderCmd.Flags().StringP("right-loop-block-delimiter", "", "]", "Right loop block delimiter ( default is ']' )")
 	renderCmd.Flags().StringP("panic-if-no-match", "p", "true", "Panic if a variable is not found in the data")
 	renderCmd.Flags().StringP("key-column", "k", "id", "Key column ( for .csv variable file ) ( default is 'id' }} )")
-	renderCmd.Flags().StringP("wrapping-loop-variable", "w", "$", "Name of the root loop variables in template ( for .csv variable file ) ( default is 'loop' }} )")
+	renderCmd.Flags().StringP("injection-loop-variable", "w", "$", "Name of the root loop variable in single file template ( default is '$' }} )")
 	renderCmd.Flags().StringP("multiple-output", "", "false", "Whether to generate multiple files from input template and an input data array ( default is 'false' }} )")
 	renderCmd.Flags().StringP("multiple-output-filename-pattern", "", "{0}_{i}", "Naming pattern of the generated files in case of multiple-output set to true. Example {0}_{i}_{variable_name} ( default is {0}_{i} }} with {0} : the current file name, {i} : the current file index and {variable_name} : a variable from the data)")
 	renderCmd.MarkFlagRequired("in")

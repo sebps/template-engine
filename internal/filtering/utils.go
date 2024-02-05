@@ -5,6 +5,7 @@ import (
 	"strings"
 )
 
+// TODO: rewrite jsonPathRegex regexp
 var jsonPathRegex = regexp.MustCompile(`^\$\[\?\((?P<path>@[^\s]+)\s[^\s]+\s[^\s]+\]$`)
 var jsonPathPathPartRegex = regexp.MustCompile(`\@[^\s]+`)
 
@@ -25,8 +26,10 @@ func RewriteJsonPathFilterPathPart(jsonPathFilter string, additive string) strin
 	return finalJsonPathFilter
 }
 
+// TODO: check regexp match
 func IsJsonPathCompliant(input string) bool {
-	return jsonPathRegex.Match([]byte(input))
+	return true
+	// return jsonPathRegex.Match([]byte(input))
 }
 
 func GetJsonPathPathPart(input string) string {
