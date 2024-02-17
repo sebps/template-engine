@@ -111,11 +111,6 @@ var renderCmd = &cobra.Command{
 			if !filtering.IsJsonPathCompliant(dataFilter) {
 				panic(errors.New("wrong data filter format"))
 			}
-			dataFileExt := filepath.Ext(dataPath)
-			if !isMultipleOutput && (dataFileExt == ".csv" || dataFileExt == ".xlsx") {
-				// tweak the json path filter to reflect the loop variable for tabular format input
-				// dataFilter = filtering.RewriteJsonPathFilterPathPart(dataFilter, loopVariable)
-			}
 		}
 		/* rules end */
 
