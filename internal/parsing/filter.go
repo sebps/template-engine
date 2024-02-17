@@ -1,7 +1,6 @@
 package parsing
 
 import (
-	"encoding/json"
 	"errors"
 	"log"
 
@@ -9,19 +8,21 @@ import (
 	"github.com/sebps/template-engine/internal/utils"
 )
 
-func filterVariables(input interface{}, jsonPathFilter string) (output []map[string]interface{}, err error) {
-	var tmp interface{} = input
-
+func filterVariables(input interface{}, jsonPathFilter string) (output interface{}, err error) {
+	filtered := input
 	if len(jsonPathFilter) > 0 {
-		tmp = filtering.Filter(tmp, jsonPathFilter)
+		filtered = filtering.Filter(input, jsonPathFilter)
 	}
 
-	bTmp, err := json.Marshal(tmp)
-	if err != nil {
-		log.Fatal(err)
-		return nil, err
+	if utils.IsArray(filtered) {
+		var arrayOutput []map[string]interface{}
+		utils.MarshalUnmarshal(filtered, &arrayOutput)
+		output = arrayOutput
+	} else {
+		var mapOutput map[string]interface{}
+		utils.MarshalUnmarshal(filtered, &mapOutput)
+		output = mapOutput
 	}
-	json.Unmarshal(bTmp, &output)
 
 	return
 }
@@ -33,18 +34,22 @@ func filterAndRootVariables(iVariables interface{}, jsonPathFilter string, isMul
 		return nil, err
 	}
 
-	variables = fVariables
-	if isMultipleOutput && !utils.IsArray(fVariables) {
-		err = errors.New("multiple output requires list data type")
-	} else if !isMultipleOutput && utils.IsArray(fVariables) {
+	if utils.IsArray(fVariables) && isMultipleOutput {
+		variables = fVariables.([]map[string]interface{})
+	} else if utils.IsArray(fVariables) && !isMultipleOutput {
+		// root flat variable to prepare for template injection
 		rootVariables, err := RootVariables(fVariables, loopInjectionVariable)
 		if err != nil {
 			log.Fatal(err)
 			return nil, err
 		}
-
 		variables = make([]map[string]interface{}, 1)
 		variables[0] = rootVariables
+	} else if !utils.IsArray(fVariables) && isMultipleOutput {
+		err = errors.New("multiple output requires a flat data input")
+	} else if !utils.IsArray(fVariables) && !isMultipleOutput {
+		variables = make([]map[string]interface{}, 1)
+		variables[0] = fVariables.(map[string]interface{})
 	}
 
 	return

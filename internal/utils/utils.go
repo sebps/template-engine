@@ -2,6 +2,7 @@ package utils
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -122,4 +123,18 @@ func IsArray(input interface{}) bool {
 	default:
 		return false
 	}
+}
+
+func MarshalUnmarshal(input interface{}, output interface{}) (interface{}, error) {
+	inputBytes, err := json.Marshal(input)
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.Unmarshal(inputBytes, output)
+	if err != nil {
+		return nil, err
+	}
+
+	return output, nil
 }
