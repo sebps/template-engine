@@ -1,0 +1,19 @@
+{
+  "records": [
+    {
+      "data_1": "Record 1 Data 1",
+      "data_2": "Record 1 Data 2",
+      "sku": "record1"
+    },
+    {
+      "data_1": "Record 2 Data 1",
+      "data_2": "Record 2 Data 2",
+      "sku": "record2"
+    },
+    {
+      "data_1": "Record 3 Data 1",
+      "data_2": "Record 3 Data 2",
+      "sku": "record3"
+    }
+  ]
+}

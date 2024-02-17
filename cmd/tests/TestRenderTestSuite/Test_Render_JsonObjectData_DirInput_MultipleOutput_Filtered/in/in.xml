@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<catalog>
+    <product>
+        <sku>{{sku}}</sku>
+        <data_1>{{data_1}}</data_1>
+        <data_2>{{data_2}}</data_2>
+    </product>
+</catalog>
