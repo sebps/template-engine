@@ -20,8 +20,8 @@ github.com/richardlehane/msoleps v1.0.3/go.mod h1:BWev5JBpU9Ko2WAgmZEuiz4/u3ZYTK
 github.com/rs/cors v1.10.1 h1:L0uuZVXIKlI1SShY2nhFfo44TYvDPQ1w4oFkUJNfhyo=
 github.com/rs/cors v1.10.1/go.mod h1:XyqrcTp5zjWr1wsJ8PIRZssZ8b/WMcMf71DJnit4EMU=
 github.com/russross/blackfriday/v2 v2.1.0/go.mod h1:+Rmxgy9KzJVeS9/2gXHxylqXiyQDYRxCVz55jmeOWTM=
-github.com/sebps/jsonpath v1.0.1 h1:QHO171UiFAcO2829T8DpVBBhca8syQVwnlDpVVDMSLA=
-github.com/sebps/jsonpath v1.0.1/go.mod h1:WaB8gRdpHpc3/XzqFkEvdiyVuE7iQODHx877s8C/IFw=
+github.com/sebps/jsonpath v1.0.2 h1:LDXKeD8Ii1sh3AsyxM5MJjmRbEhbcwZkqKTR+pxH2Ms=
+github.com/sebps/jsonpath v1.0.2/go.mod h1:WaB8gRdpHpc3/XzqFkEvdiyVuE7iQODHx877s8C/IFw=
 github.com/spf13/cobra v1.5.0 h1:X+jTBEBqF0bHN+9cSMgmfuvv2VHJ9ezmFNf9Y/XstYU=
 github.com/spf13/cobra v1.5.0/go.mod h1:dWXEIy2H428czQCjInthrTRUg7yKbok+2Qi/yBIJoUM=
 github.com/spf13/pflag v1.0.5 h1:iy+VFUOCP1a+8yFto/drg2CJ5u0yRoB7fZw3DKv/JXA=
