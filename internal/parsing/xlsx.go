@@ -36,7 +36,6 @@ func doParseXLSX(data []byte, keyCol string) ([]map[string]interface{}, error) {
 
 	keyColNum := -1
 	rowNum := 0
-	tableSize := 0
 	for _, row := range rows {
 		if err == io.EOF {
 			break
@@ -52,14 +51,13 @@ func doParseXLSX(data []byte, keyCol string) ([]map[string]interface{}, error) {
 				} else {
 					rootLoop = append(rootLoop, make(map[string]interface{}))
 				}
-				tableSize++
 			}
 			if keyColNum == -1 {
 				return nil, errors.New("key column not found")
 			}
 		} else {
-			if len(row) != tableSize {
-				// if wrong row length no further processing of the current row
+			if len(row)-1 < keyColNum {
+				// if row length too small to reach key col index no further processing of the current row
 				continue
 			}
 			currentVariable := row[keyColNum]
