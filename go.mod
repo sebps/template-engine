@@ -6,7 +6,7 @@ require (
 	github.com/gorilla/mux v1.8.1
 	github.com/gorilla/schema v1.2.1
 	github.com/rs/cors v1.10.1
-	github.com/sebps/jsonpath v1.0.1
+	github.com/sebps/jsonpath v1.0.2
 	github.com/spf13/cobra v1.5.0
 	github.com/stretchr/testify v1.8.0
 	github.com/xuri/excelize/v2 v2.8.0
